@@ -1,0 +1,654 @@
+{
+  "info": {
+    "_postman_id": "learnknow-review-2-collection",
+    "name": "LEARNKNOW - Review 2 API Suite",
+    "description": "Comprehensive Postman collection for LEARNKNOW Spring Cloud Microservices demonstration and viva evaluation for Review 2.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "studentToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "courseId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "assignmentId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication & Security",
+      "item": [
+        {
+          "name": "1.1 Register Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alice Student\",\n  \"email\": \"student@learnknow.io\",\n  \"password\": \"studentPass123!\",\n  \"role\": \"STUDENT\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "1.2 Register Admin / Instructor",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Prof. Bob Admin\",\n  \"email\": \"admin@learnknow.io\",\n  \"password\": \"adminPass123!\",\n  \"role\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "1.3 Login Student (Saves studentToken)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) {",
+                  "    pm.collectionVariables.set('studentToken', res.token);",
+                  "    pm.environment.set('studentToken', res.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student@learnknow.io\",\n  \"password\": \"studentPass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "1.4 Login Admin (Saves adminToken)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) {",
+                  "    pm.collectionVariables.set('adminToken', res.token);",
+                  "    pm.environment.set('adminToken', res.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@learnknow.io\",\n  \"password\": \"adminPass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "1.5 Login Invalid Credentials (Expect 401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"student@learnknow.io\",\n  \"password\": \"wrongPasswordHere\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "1.6 Get User Profile (Protected)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/users/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "users", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Gateway Security & Validation Negative Tests",
+      "item": [
+        {
+          "name": "2.1 Access Protected Route Without Token (Expect 401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "courses"]
+            }
+          }
+        },
+        {
+          "name": "2.2 Access With Tampered Token (Expect 401)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer invalid.fake.token" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "courses"]
+            }
+          }
+        },
+        {
+          "name": "2.3 Student Creating Course (RBAC Expect 403 Forbidden)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Unauthorized Course Creation Attempt\",\n  \"description\": \"Student should not be able to create courses\",\n  \"level\": \"BEGINNER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/courses",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "courses"]
+            }
+          }
+        },
+        {
+          "name": "2.4 Call Non-Existent Gateway Route (Expect 404 Not Found)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/unknown-service-route",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "unknown-service-route"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Course Service Operations",
+      "item": [
+        {
+          "name": "3.1 Create Course as Admin (Saves courseId)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.id) {",
+                  "    pm.collectionVariables.set('courseId', res.id);",
+                  "    pm.environment.set('courseId', res.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Cloud Native Java & Microservices\",\n  \"description\": \"Master Spring Boot, Spring Cloud, Netflix Eureka, and API Gateway\",\n  \"level\": \"ADVANCED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/courses",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "courses"]
+            }
+          }
+        },
+        {
+          "name": "3.2 Get All Courses",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "courses"]
+            }
+          }
+        },
+        {
+          "name": "3.3 Get Course By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/{{courseId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "courses", "{{courseId}}"]
+            }
+          }
+        },
+        {
+          "name": "3.4 Add Module to Course (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Module 1: Service Discovery & Gateway Routing\",\n  \"sequenceNo\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/{{courseId}}/modules",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "courses", "{{courseId}}", "modules"]
+            }
+          }
+        },
+        {
+          "name": "3.5 Add Resource to Module (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Spring Cloud Architecture Cheatsheet\",\n  \"resourceType\": \"DOCUMENT\",\n  \"contentUrl\": \"https://docs.learnknow.io/spring-cloud-cheatsheet.pdf\",\n  \"accessLevel\": \"ENROLLED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/courses/modules/1/resources",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "courses", "modules", "1", "resources"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Access Service (Enrollment & Validation)",
+      "item": [
+        {
+          "name": "4.1 Check Access Before Enrollment (Expect enrolled: false)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/access/check/1/{{courseId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "access", "check", "1", "{{courseId}}"]
+            }
+          }
+        },
+        {
+          "name": "4.2 Enroll Student in Course",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"courseId\": {{courseId}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/access/enroll",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "access", "enroll"]
+            }
+          }
+        },
+        {
+          "name": "4.3 Check Access After Enrollment (Expect enrolled: true)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/access/check/1/{{courseId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "access", "check", "1", "{{courseId}}"]
+            }
+          }
+        },
+        {
+          "name": "4.4 Validate Enrollment API",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"courseId\": {{courseId}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/access/validate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "access", "validate"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Assignment Service Operations",
+      "item": [
+        {
+          "name": "5.1 Create Assignment (Admin/Instructor)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.id) {",
+                  "    pm.collectionVariables.set('assignmentId', res.id);",
+                  "    pm.environment.set('assignmentId', res.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": {{courseId}},\n  \"title\": \"Lab 1: Gateway JWT Global Filter\",\n  \"description\": \"Implement role-based filtering in Spring Cloud Gateway with reactive WebFlux\",\n  \"dueDate\": \"2026-12-31T23:59:59\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/assignments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "assignments"]
+            }
+          }
+        },
+        {
+          "name": "5.2 List Assignments for Course",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/assignments/course/{{courseId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "assignments", "course", "{{courseId}}"]
+            }
+          }
+        },
+        {
+          "name": "5.3 Submit Assignment (Student)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"code\": \"public class Solution { public static void main(String[] args) { System.out.println(\\\"Review 2 Complete\\\"); } }\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/assignments/{{assignmentId}}/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "assignments", "{{assignmentId}}", "submit"]
+            }
+          }
+        },
+        {
+          "name": "5.4 Get Student Submission",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/assignments/{{assignmentId}}/submissions/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "assignments", "{{assignmentId}}", "submissions", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Usage Service (Activity & Progress)",
+      "item": [
+        {
+          "name": "6.1 Record Learning Activity",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"resourceId\": 1,\n  \"action\": \"COMPLETED_VIDEO\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usage/activity",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "usage", "activity"]
+            }
+          }
+        },
+        {
+          "name": "6.2 Get Student Activity History",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/usage/history/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "usage", "history", "1"]
+            }
+          }
+        },
+        {
+          "name": "6.3 Record Valid Course Progress (75%)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"courseId\": {{courseId}},\n  \"moduleId\": 1,\n  \"completionPercent\": 75.0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usage/progress",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "usage", "progress"]
+            }
+          }
+        },
+        {
+          "name": "6.4 Record Invalid Progress (>100% Expect 400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"courseId\": {{courseId}},\n  \"moduleId\": 1,\n  \"completionPercent\": 150.0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/usage/progress",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "usage", "progress"]
+            }
+          }
+        },
+        {
+          "name": "6.5 Get Course Progress",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/usage/progress/1/{{courseId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "usage", "progress", "1", "{{courseId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. AI Assistant Service",
+      "item": [
+        {
+          "name": "7.1 Ask AI NullPointerException",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"question\": \"How do I fix a Java NullPointerException in my microservice?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/ask",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ai", "ask"]
+            }
+          }
+        },
+        {
+          "name": "7.2 Ask AI Recursion",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"question\": \"Explain the base case in recursion\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/ask",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ai", "ask"]
+            }
+          }
+        },
+        {
+          "name": "7.3 Ask AI REST API Principles",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"question\": \"What are the REST API guidelines for HTTP status codes?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ai/ask",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "ai", "ask"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
